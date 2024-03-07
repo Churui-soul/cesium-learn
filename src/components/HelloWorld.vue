@@ -5,6 +5,8 @@ import * as Cesium from 'cesium'
 // import { ScreenSpaceEventHandler, UniformType } from 'cesium'
 import 'cesium/Build/CesiumUnminified/Widgets/widgets.css'
 
+import { RaderDiffuseMaterial, RaderScanMaterial } from '../material/rader'
+
 const cesiumContainer = ref(null)
 
 // // 添加行政区
@@ -172,43 +174,13 @@ const cesiumContainer = ref(null)
 // }
 // 雷达
 const radar = (viewer: Cesium.Viewer) => {
-    class RaderMaterial {
-        constructor () {
-            (Cesium.Material as any)._materialCache.addMaterial('RaderMaterial', {
-                fabric: {
-                    type: 'RaderMaterial',
-                    uniforms: {
-                        uImg: '/goright.png',
-                        uTime: 0
-                    },
-                    source: `
-                        czm_material czm_getMaterial(czm_materialInput position) {
-                            czm_material material = czm_getDefaultMaterial(position);
-                            // cesium 内置czm_frameNumber, 当前渲染帧数递增
-                            float speed = czm_frameNumber / 60.0;
-
-                            vec4 texture = texture(uImg, vec2(fract(position.st.s + speed), position.st.t));
-
-                            material.diffuse = vec3(texture);
-                            return material;
-                        }
-                    `
-                }
-            })
-        }
-        getType() {
-            return 'RaderMaterial'
-        }
-        getValue(time: number, result: any) {
-            result.uTime = performance.now() / 1000
-            return result
-        } 
-    }
-
     viewer.entities.add({
-        rectangle: {
-            coordinates: Cesium.Rectangle.fromDegrees(90, 20, 110, 30),
-            material: new RaderMaterial() as unknown as Cesium.MaterialProperty
+        position: Cesium.Cartesian3.fromDegrees(90.0, 40.0),
+        name: "Red ellipse on surface",
+        ellipse: {
+            semiMinorAxis: 250000.0,
+            semiMajorAxis: 250000.0,
+            material: new RaderScanMaterial() as unknown as Cesium.MaterialProperty,
         },
     })
     viewer.flyTo(viewer.entities)
